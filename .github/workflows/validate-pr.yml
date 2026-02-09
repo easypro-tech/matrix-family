@@ -1,0 +1,144 @@
+# Project: HushMe Store Apps
+# Company: Matrix Family (matrix.family)
+# Dev: Brabus (EasyProTech)
+# Date: 2026-02-09 UTC
+# Status: Updated
+
+name: Validate Store App PR
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'hushme/store-apps/apps/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find changed apps
+        id: changed
+        run: |
+          APPS=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '^hushme/store-apps/apps/' | cut -d'/' -f4 | sort -u)
+          echo "apps=$APPS" >> $GITHUB_OUTPUT
+          echo "Changed apps: $APPS"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ajv-cli
+        run: npm install -g ajv-cli ajv-formats
+
+      - name: Validate manifests against schema
+        run: |
+          for APP_ID in ${{ steps.changed.outputs.apps }}; do
+            MANIFEST="hushme/store-apps/apps/$APP_ID/manifest.json"
+            
+            if [ ! -f "$MANIFEST" ]; then
+              echo "[ERROR] Missing manifest.json for $APP_ID"
+              exit 1
+            fi
+            
+            # Validate against JSON schema
+            if ! ajv validate -s hushme/store-apps/schemas/manifest.schema.json -d "$MANIFEST" --spec=draft7 -c ajv-formats; then
+              echo "[ERROR] Schema validation failed for $MANIFEST"
+              exit 1
+            fi
+            
+            # Check ID matches folder
+            MANIFEST_ID=$(jq -r '.id' "$MANIFEST")
+            if [ "$MANIFEST_ID" != "$APP_ID" ]; then
+              echo "[ERROR] App ID mismatch: folder is $APP_ID but manifest has $MANIFEST_ID"
+              exit 1
+            fi
+            
+            echo "[OK] $APP_ID manifest is valid"
+          done
+
+      - name: Check required files
+        run: |
+          for APP_ID in ${{ steps.changed.outputs.apps }}; do
+            APP_DIR="hushme/store-apps/apps/$APP_ID"
+            
+            # Check bundle.js
+            if [ ! -f "$APP_DIR/bundle.js" ]; then
+              echo "[ERROR] Missing bundle.js for $APP_ID"
+              exit 1
+            fi
+            
+            # Check icon (PNG or SVG)
+            if [ ! -f "$APP_DIR/icon.png" ] && [ ! -f "$APP_DIR/icon.svg" ]; then
+              echo "[ERROR] Missing icon (icon.png or icon.svg) for $APP_ID"
+              exit 1
+            fi
+            
+            echo "[OK] $APP_ID has all required files"
+          done
+
+      - name: Security scan
+        run: |
+          for APP_ID in ${{ steps.changed.outputs.apps }}; do
+            BUNDLE="hushme/store-apps/apps/$APP_ID/bundle.js"
+            
+            # Check for dangerous patterns
+            if grep -E 'eval\s*\(' "$BUNDLE"; then
+              echo "[WARN] eval() found in $APP_ID"
+            fi
+            
+            if grep -E 'new\s+Function\s*\(' "$BUNDLE"; then
+              echo "[WARN] new Function() found in $APP_ID"
+            fi
+            
+            if grep -E 'document\.cookie' "$BUNDLE"; then
+              echo "[WARN] document.cookie access in $APP_ID"
+            fi
+            
+            echo "[OK] $APP_ID security scan complete"
+          done
+
+      - name: Permissions diff
+        run: |
+          for APP_ID in ${{ steps.changed.outputs.apps }}; do
+            MANIFEST="hushme/store-apps/apps/$APP_ID/manifest.json"
+            
+            echo "Permissions for $APP_ID:"
+            jq -r '.permissions[]' "$MANIFEST" | while read PERM; do
+              # Flag high-risk permissions
+              case $PERM in
+                crypto.decrypt|crypto.sign|crypto.keys.private)
+                  echo "  [HIGH RISK] $PERM"
+                  ;;
+                network.fetch|network.websocket|matrix.send.messages)
+                  echo "  [MEDIUM RISK] $PERM"
+                  ;;
+                *)
+                  echo "  [LOW] $PERM"
+                  ;;
+              esac
+            done
+          done
+
+      - name: Summary
+        run: |
+          echo "## Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          for APP_ID in ${{ steps.changed.outputs.apps }}; do
+            echo "### $APP_ID" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            MANIFEST="hushme/store-apps/apps/$APP_ID/manifest.json"
+            echo "- **Name**: $(jq -r '.name' $MANIFEST)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Version**: $(jq -r '.version' $MANIFEST)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Type**: $(jq -r '.type' $MANIFEST)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Author**: $(jq -r '.author' $MANIFEST)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            echo "**Permissions:**" >> $GITHUB_STEP_SUMMARY
+            jq -r '.permissions[]' "$MANIFEST" | while read PERM; do
+              echo "- \`$PERM\`" >> $GITHUB_STEP_SUMMARY
+            done
+          done

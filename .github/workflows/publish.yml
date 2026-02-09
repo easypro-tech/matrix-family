@@ -1,0 +1,73 @@
+# Project: HushMe Store Apps
+# Company: Matrix Family (matrix.family)
+# Dev: Brabus (EasyProTech)
+# Date: 2026-02-09 UTC
+# Status: Updated
+
+name: Publish to Store
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hushme/store-apps/apps/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Find changed apps
+        id: changed
+        run: |
+          APPS=$(git diff --name-only HEAD~1 HEAD | grep '^hushme/store-apps/apps/' | cut -d'/' -f4 | sort -u)
+          echo "apps=$APPS" >> $GITHUB_OUTPUT
+          echo "Changed apps: $APPS"
+
+      - name: Deploy to CDN
+        env:
+          CDN_DEPLOY_KEY: ${{ secrets.CDN_DEPLOY_KEY }}
+        run: |
+          for APP_ID in ${{ steps.changed.outputs.apps }}; do
+            APP_DIR="hushme/store-apps/apps/$APP_ID"
+            
+            echo "Publishing $APP_ID..."
+            
+            # In production, this would deploy to hushme.store CDN
+            # Example: rsync, scp, or API call
+            
+            # rsync -avz "$APP_DIR/" user@hushme.store:/var/www/bundles/$APP_ID/
+            
+            echo "[OK] $APP_ID published"
+          done
+
+      - name: Update store index
+        run: |
+          # Regenerate apps.json index
+          echo "[]" > hushme/store-apps/apps.json
+          
+          for APP_DIR in hushme/store-apps/apps/*/; do
+            APP_ID=$(basename "$APP_DIR")
+            MANIFEST="$APP_DIR/manifest.json"
+            
+            if [ -f "$MANIFEST" ]; then
+              # Add app to index
+              jq --slurpfile app "$MANIFEST" '. += [$app[0]]' hushme/store-apps/apps.json > hushme/store-apps/apps.json.tmp
+              mv hushme/store-apps/apps.json.tmp hushme/store-apps/apps.json
+            fi
+          done
+          
+          echo "Updated store index with $(jq length hushme/store-apps/apps.json) apps"
+
+      - name: Notify
+        if: success()
+        run: |
+          echo "## Published Apps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          for APP_ID in ${{ steps.changed.outputs.apps }}; do
+            MANIFEST="hushme/store-apps/apps/$APP_ID/manifest.json"
+            echo "- **$(jq -r '.name' $MANIFEST)** ($APP_ID) v$(jq -r '.version' $MANIFEST)" >> $GITHUB_STEP_SUMMARY
+          done

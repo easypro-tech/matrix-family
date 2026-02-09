@@ -22,6 +22,8 @@ matrix-family/
 │   ├── app-template/          # Official app starter template
 │   └── examples/
 │       └── calculator/        # Reference implementation
+├── hushme/                    # HushMe Ecosystem
+│   └── store-apps/            # App submissions for HushMe Store
 └── README.md
 ```
 
@@ -53,6 +55,12 @@ cd mfos/examples/calculator
 bun install
 bun run dev
 ```
+
+## HushMe Store Apps
+
+Submit your MFOS applications to [HushMe Store](https://hushme.store).
+
+See [hushme/store-apps](hushme/store-apps) for submission guidelines and requirements.
 
 ## Documentation
 

@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mfos.tech/schemas/manifest.json",
+  "title": "MFOS App Manifest",
+  "description": "Schema for MFOS application manifest.json",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "version",
+    "type",
+    "description",
+    "author",
+    "permissions",
+    "entry",
+    "icon"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*\\.[a-z][a-z0-9]*\\.[a-z][a-z0-9-]*$",
+      "description": "Unique app ID in reverse domain notation (com.developer.appname or tech.company.appname)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50,
+      "description": "Display name shown to users"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (1.0.0)"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["standalone", "provider", "widget"],
+      "description": "App type"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "What the app does"
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Developer name"
+    },
+    "contact": {
+      "type": "string",
+      "pattern": "^@[a-z0-9._=-]+:[a-z0-9.-]+$",
+      "description": "Matrix ID for contact"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "user.profile.read",
+          "network.fetch",
+          "network.websocket",
+          "network.gateway",
+          "storage.read",
+          "storage.write",
+          "storage.indexeddb",
+          "matrix.read.messages",
+          "matrix.send.messages",
+          "matrix.read.state",
+          "matrix.write.state",
+          "matrix.read.account_data",
+          "matrix.write.account_data",
+          "matrix.user.profile",
+          "crypto.read",
+          "crypto.verify",
+          "crypto.sign",
+          "crypto.encrypt",
+          "crypto.decrypt",
+          "crypto.keys.public",
+          "crypto.keys.private",
+          "crypto.secureStore",
+          "ui.notifications",
+          "ui.fullscreen",
+          "ui.clipboard",
+          "ui.camera",
+          "ui.microphone",
+          "system.background",
+          "system.autostart",
+          "client.voice.write",
+          "client.theme.write",
+          "client.sounds.write",
+          "client.inline.panel"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "Required permissions"
+    },
+    "entry": {
+      "type": "string",
+      "const": "bundle.js",
+      "description": "Entry point file"
+    },
+    "icon": {
+      "type": "string",
+      "pattern": "^icon\\.(png|svg)$",
+      "description": "App icon file (icon.png or icon.svg, 512x512)"
+    },
+    "minClientVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Minimum HushMe client version required"
+    },
+    "signature": {
+      "type": "string",
+      "description": "App signature (added by store on publish)"
+    },
+    "backend": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Backend base URL"
+        },
+        "health": {
+          "type": "string",
+          "description": "Health check endpoint path"
+        }
+      },
+      "required": ["url", "health"],
+      "description": "Backend configuration (if app requires backend)"
+    },
+    "locales": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "type": "string",
+          "description": "Default locale code (e.g., 'en')"
+        },
+        "supported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of supported locale codes"
+        }
+      },
+      "required": ["default", "supported"],
+      "description": "Localization configuration"
+    }
+  },
+  "additionalProperties": false
+}

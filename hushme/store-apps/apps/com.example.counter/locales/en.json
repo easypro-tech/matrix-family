@@ -1,0 +1,11 @@
+{
+  "app": {
+    "greeting": "Hello, {{name}}!"
+  },
+  "counter": {
+    "label": "Count",
+    "increment": "Increment",
+    "reset": "Reset",
+    "persistence": "Counter persists across sessions"
+  }
+}
