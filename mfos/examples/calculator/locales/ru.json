@@ -1,0 +1,15 @@
+{
+  "calc": {
+    "mode": {
+      "basic": "Базовый",
+      "scientific": "Научный"
+    },
+    "btn": {
+      "clear": "C"
+    },
+    "error": {
+      "divideByZero": "Деление на ноль",
+      "invalidInput": "Некорректный ввод"
+    }
+  }
+}

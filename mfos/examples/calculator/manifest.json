@@ -1,0 +1,20 @@
+{
+  "id": "tech.easypro.calculator",
+  "name": "Calculator",
+  "version": "1.1.0",
+  "type": "standalone",
+  "description": "Calculator with basic and scientific modes. Supports memory, history, and trigonometric functions.",
+  "author": "EasyProTech",
+  "contact": "@dev:matrix.family",
+  "permissions": [
+    "storage.read",
+    "storage.write"
+  ],
+  "entry": "bundle.js",
+  "icon": "icon.svg",
+  "minClientVersion": "1.0.0",
+  "locales": {
+    "default": "en",
+    "supported": ["en", "ru"]
+  }
+}

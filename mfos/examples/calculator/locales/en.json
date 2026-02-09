@@ -1,0 +1,15 @@
+{
+  "calc": {
+    "mode": {
+      "basic": "Basic",
+      "scientific": "Scientific"
+    },
+    "btn": {
+      "clear": "C"
+    },
+    "error": {
+      "divideByZero": "Cannot divide by zero",
+      "invalidInput": "Invalid input"
+    }
+  }
+}

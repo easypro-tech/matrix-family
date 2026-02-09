@@ -1,0 +1,16 @@
+{
+  "app": {
+    "title": "Counter",
+    "greeting": "Hello, {{name}}!"
+  },
+  "counter": {
+    "label": "Count",
+    "increment": "Increment",
+    "reset": "Reset",
+    "persistence": "Counter persists across sessions"
+  },
+  "error": {
+    "generic": "An error occurred",
+    "divideByZero": "Cannot divide by zero"
+  }
+}

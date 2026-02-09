@@ -1,0 +1,19 @@
+{
+  "id": "com.yourname.myapp",
+  "name": "My MFOS App",
+  "version": "1.0.0",
+  "type": "standalone",
+  "description": "A simple MFOS application with counter example",
+  "author": "Your Name",
+  "contact": "@yourname:matrix.family",
+  "permissions": [
+    "storage.read",
+    "storage.write"
+  ],
+  "entry": "bundle.js",
+  "icon": "icon.svg",
+  "locales": {
+    "default": "en",
+    "supported": ["en", "ru"]
+  }
+}
